@@ -1,0 +1,298 @@
+﻿@model DataGenerator.ViewModels.DataPoolViewModel
+
+@{
+    List<string> firstnames = new List<string>();
+    ViewData["Title"] = "Get Started";
+}
+
+
+<script>
+    var myQuery = "DROP TABLE IF EXISTS Table1\nCREATE TABLE Table1(";
+    var myTable = "Table1";
+    var fieldList = [];
+    var numberOfRows = 10;
+
+    function SetTableName() {
+        myTable = document.getElementById('TableName').value;
+        if (myTable.Length<=0){
+            alert("Table name cannot be blank. Please enter a value");
+        }
+        myQuery = "DROP TABLE IF EXISTS " + myTable + "\nCREATE TABLE " + myTable + " (";
+        document.getElementById('SQLTextArea').innerHTML = myQuery;
+    }
+
+    function SetCodeType() {
+        if(document.getElementById('SQLQuery').checked == true){
+            document.getElementById('SQLTextArea').hidden = false;
+        }
+        if (document.getElementById('C#Code').checked == true) {
+            document.getElementById('C#TextArea').hidden = false;
+        }
+    }
+
+    function AddDatatypeForField(){
+        let myType = document.getElementById('DataTypeSelection').value;
+        switch(myType){
+            case "0":
+                myQuery = myQuery + "\n\tFirstName varchar(100) DEFAULT NULL";
+                fieldList.push('FirstName');
+                break;
+            case "1":
+                myQuery = myQuery + "\n\tMiddleName varchar(100) DEFAULT NULL";
+                fieldList.push('MiddleName');
+                break;
+            case "2":
+                myQuery = myQuery + "\n\tLastName varchar(100) DEFAULT NULL";
+                fieldList.push('LastName');
+                break;
+            case "3":
+                myQuery = myQuery + "\n\tMiddleInitial varchar(2) DEFAULT NULL";
+                fieldList.push('MiddleInitial');
+                break;
+            case "4":
+                myQuery = myQuery + "\n\tNumericID int DEFAULT NULL";
+                fieldList.push('NumericID');
+                break;
+            case "5":
+                myQuery = myQuery + "\n\tAlphaNumericID varchar(100) DEFAULT NULL";
+                fieldList.push('AlphaNumericID');
+                break;
+            case "6":
+                myQuery = myQuery + "\n\tIntegerValue int DEFAULT NULL";
+                fieldList.push('IntegerValue');
+                break;
+            case "7":
+                myQuery = myQuery + "\n\tDecimalValue float DEFAULT NULL";
+                fieldList.push('DecimalValue');
+                break;
+            case "8":
+                myQuery = myQuery + "\n\tDate date DEFAULT NULL";
+                fieldList.push('Date');
+                break;
+        }
+        document.getElementById('DataTypeSelection').selectedIndex = -1;
+    }
+
+    function AddField(){
+        let myType = document.getElementById('DataTypeSelection').value;
+        if(myType=="-1" || myType ==""){
+            alert("You did not make a dropdown selection.\nPlease select from dropdown before clicking Save and Add Another");
+        }
+        else{
+            let lastChar = myQuery.charAt(myQuery.length-1);
+            if(lastChar=='L'){
+                myQuery=myQuery+",";
+            }
+            AddDatatypeForField();
+            document.getElementById('SQLTextArea').innerHTML = myQuery;
+        }
+    }
+
+    function FieldsComplete(){
+        let myType = document.getElementById('DataTypeSelection').value;
+        if (myType == "-1" || myType == "") {
+            alert("You did not make a dropdown selection.\nFinishing up table without adding additional fields");
+        }
+        else {
+            let lastChar = myQuery.charAt(myQuery.length - 1);
+            if (lastChar == 'L') {
+                myQuery = myQuery + ",";
+            }
+            AddDatatypeForField();
+        }
+        myQuery = myQuery + "\n)";
+        document.getElementById('SQLTextArea').innerHTML = myQuery;
+    }
+
+    function Generate(){
+        numberOfRows = document.getElementById('NumberOfRows').value;
+        if(numberOfRows<1)
+        {
+            alert("Please enter a value of 1 or more for number of rows");
+        }
+        else
+        {
+            myQuery = myQuery + "\n\nGO\n\nINSERT INTO " + myTable + " VALUES\n";
+            for(let i=0; i<numberOfRows; i++)
+            {
+                let lastChar = myQuery.charAt(myQuery.length - 1);
+                if(lastChar != '\n' ){
+                    myQuery = myQuery + ",\n";
+                }
+                myQuery = myQuery + "(";
+
+                fieldList.forEach((field) => 
+                {
+                    lastChar = myQuery.charAt(myQuery.length - 1);
+                    if (lastChar != '(') 
+                    {
+                        myQuery = myQuery + ", ";
+                    }
+
+                    let dataForField = GetDataFor(field);
+
+                    myQuery = myQuery + dataForField;
+                });
+                myQuery = myQuery + " )";
+            }
+            document.getElementById('SQLTextArea').innerHTML = myQuery;
+        }
+    }
+
+    let firstNames = ["James", "Robert", "John", "Michael", "David", "William", "Richard", "Joseph", "Thomas", "Charles", "Christopher", 
+    "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua", "Kenneth", "Kevin", "Brian", "George", 
+    "Timothy", "Ronald", "Edward", "Jason", "Jeffrey", "Ryan", "Jacob", "Gary", "Nicholas", "Eric", "Jonathan", "Stephen", "Larry", 
+    "Justin", "Scott", "Brandon", "Benjamin", "Samuel", "Gregory", "Alexander", "Frank", "Patrick", "Raymond", "Jack", "Dennis", 
+    "Jerry", "Tyler", "Aaron", "Jose", "Adam", "Nathan", "Henry", "Douglas", "Zachary", "Peter", "Kyle", "Ethan", "Walter", "Noah", 
+    "Jeremy", "Christian", "Keith", "Roger", "Terry", "Gerald", "Harold", "Sean", "Austin", "Carl", "Arthur", "Lawrence", "Dylan", 
+    "Jesse", "Jordan", "Bryan", "Billy", "Joe", "Bruce", "Gabriel", "Logan", "Albert", "Willie", "Alan", "Juan", "Wayne", "Elijah", 
+    "Randy", "Roy", "Vincent", "Ralph", "Eugene", "Russell", "Bobby", "Mason", "Philip", "Louis", "Mary", "Patricia", "Jennifer", 
+    "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen", "Lisa", "Nancy", "Betty", "Margaret", "Sandra", "Ashley", 
+    "Kimberly", "Emily", "Donna", "Michelle", "Carol", "Amanda", "Dorothy", "Melissa", "Deborah", "Stephanie", "Rebecca", "Sharon", 
+    "Laura", "Cynthia", "Kathleen", "Amy", "Angela", "Shirley", "Anna", "Brenda", "Pamela", "Emma", "Nicole", "Helen", "Samantha", 
+    "Katherine", "Christine", "Debra", "Rachel", "Carolyn", "Janet", "Catherine", "Maria", "Heather", "Diane", "Ruth", "Julie", 
+    "Olivia", "Joyce", "Virginia", "Victoria", "Kelly", "Lauren", "Christina", "Joan", "Evelyn", "Judith", "Megan", "Andrea", 
+    "Cheryl", "Hannah", "Jacqueline", "Martha", "Gloria", "Teresa", "Ann", "Sara", "Madison", "Frances", "Kathryn", "Janice", 
+    "Jean", "Abigail", "Alice", "Julia", "Judy", "Sophia", "Grace", "Denise", "Amber", "Doris", "Marilyn", "Danielle", "Beverly", 
+    "Isabella", "Theresa", "Diana", "Natalie", "Brittany", "Charlotte", "Marie", "Kayla", "Alexis", "Lori"];
+    function RandomFirstNames(){
+        let i = Math.floor(Math.random() * firstNames.length);
+        return firstNames[i];
+    }
+
+    let lastNames = ["Smith" , "Johnson" , "Williams" , "Brown" , "Jones" , "Garcia" , "Miller" , "Davis" , "Rodriguez" , 
+    "Martinez" , "Hernandez" , "López" , "Gonzalez" , "Wilson" , "Anderson" , "Thomas" , "Taylor" , "Moore" , "Jackson" ,
+    "Martin" , "Lee" , "Pérez" , "Thompson" , "White" , "Harris" , "Sanchez" , "Clark" , "Ramirez" , "Lewis" , "Robinson" ,
+    "Walker" , "Young" , "Allen" , "King" , "Wright" , "Scott" , "Torres" , "Nguyen" , "Hill" , "Flores" , "Green" , "Adams" ,
+    "Nelson" , "Baker" , "Hall" , "Rivera" , "Campbell" , "Mitchell" , "Carter" , "Roberts" , "Gomez" , "Phillips" , "Evans" ,
+    "Turner" , "Parker"];
+    function RandomLastNames() {
+        let i = Math.floor(Math.random() * lastNames.length);
+        return lastNames[i];
+    }
+
+    function GetDataFor(field) {
+        let myData = "NULL";
+        switch (field) {
+            case "FirstName":
+                myData = "'" + RandomFirstNames() + "'";
+                break;
+            case "MiddleName":
+                myData = "'" + RandomFirstNames() + "'";
+                break;
+            case "LastName":
+                myData = "'" + RandomLastNames() + "'";
+                break;
+            case "MiddleInitial":
+                var randList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                var rand = randList.charAt(Math.floor(Math.random()*26));
+                myData = "'" + rand + "'";
+                break;
+            case "NumericID":
+                var rand = Math.floor(Math.random() * 2147483646);
+                myData = rand;
+                break;
+            case "AlphaNumericID":
+                var randList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                var rand = '';
+                var anotherRand = Math.floor(Math.random() * 30) + 2;
+                for(let i = 0; i<anotherRand; i++) {
+                    rand = rand + randList.charAt(Math.floor(Math.random() * randList.length));
+                }
+                myData = "'" + rand + "'";
+                break;
+            case "IntegerValue":
+                var rand = Math.floor(Math.random() * 2147483646);
+                myData = rand;
+                break;
+            case "DecimalValue":
+                var rand = Math.random() * 2147483646;
+                myData = rand;
+                break;
+            case "Date":
+                var mydd = (Math.floor(Math.random() * 30) + 1).toString();
+                if(mydd.length==1){
+                    mydd = "0"+mydd;
+                }
+                var mymm = (Math.floor(Math.random() * 12) + 1).toString();
+                if (mymm.length == 1) {
+                    mymm = "0" + mymm;
+                }
+                var myyyyy = (Math.floor(Math.random() * 1024) + 1000).toString(); //random year from 1000-2024
+                var myDate = myyyyy+"-"+mymm+"-"+mydd;
+                myData = "'" + myDate + "'";
+                break;
+        }
+        return myData;
+    }
+
+</script>
+
+<style>
+    .StepSection {
+        width: 95%;
+        background-color: #72ddf7;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 15px;
+    }
+</style>
+
+<!--Table Name-->
+<div class="StepSection">
+    <h2>Enter Table Name</h2>
+    <input class="form-control" type="text" id="TableName" value="Table1" required/>
+    <small>Note: table name cannot have spaces. Any spaces will be converted to underscore</small>
+    <br />
+    <input type="button" value="Save table name" onclick="SetTableName()" />
+</div>
+
+<!--Code Type-->
+<div class="StepSection">
+    <h2>Select Type of code to generate</h2>
+    <div>
+        <input type="checkbox" value="SQL query" id="SQLQuery" />
+        <label for="SQLQuery">SQL Query</label>
+        <br />
+        <input type="checkbox" value="C# code" id="C#Code" />
+        <label for="C#Code">C# Code</label>
+    </div>
+    <input type="button" value="Save Code Type" onclick="SetCodeType()" />
+</div>
+
+<!--Data Type-->
+<div class="StepSection">
+    <h2>Select Data you want to generate</h2>
+    <small>Select from dropdown, then click Save and Add Another or Done Adding Fields</small>
+    <div>
+        <select id="DataTypeSelection" asp-items="Html.GetEnumSelectList<AllDataTypes>()" >
+            <option selected="selected" value="-1">Please select</option>
+        </select>
+        <input type="button" value="Save & Add Another" onclick="AddField()" />
+        <br />
+    </div>
+    <input type="button" value="Save and Done Adding Fields" onclick="FieldsComplete()" />
+</div>
+
+<!--Data Amount-->
+<div class="StepSection">
+    <h2>Select number of rows of data to generate</h2>
+    <input class="form-control" id="NumberOfRows" value="10" type="number" id="TableName" required />
+    <br />
+    <input type="button" value="Generate" onclick="Generate()" />
+</div>
+
+<!--SQL Query-->
+<textarea class="StepSection" id="SQLTextArea" rows="20" hidden>
+    SQL Query:
+</textarea>
+
+<!--C# Code-->
+<textarea class="StepSection" id="C#TextArea" hidden>
+    C# Code:
+</textarea>
+
+
+
+
+
